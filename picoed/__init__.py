@@ -1,39 +1,28 @@
-# SPDX-FileCopyrightText: Copyright ELECFREAKS
-# SPDX-License-Identifier: MIT
-
 """
 `picoed`
 ====================================================
 
-The Pico:ed build-in modules for CircuitPython.
+The Pico:ed build-in modules for MicroPython.
 
 """
 
-import board
-import busio
-from .display import Display
-from .display import Image
+from machine import I2C, Pin
+from .display import Display, Image
 from .button import Button
 from .led import Led
-from elecfreaks_music import Music
+from .music import Music
 
-__version__ = "0.1.0"
-__repo__ = "https://github.com/elecfreaks/circuitpython_picoed.git"
+I2C0_SDA = Pin(0)
+I2C0_SCL = Pin(1)
+BUTTON_A = Pin(20, Pin.IN, Pin.PULL_UP)
+BUTTON_B = Pin(21, Pin.IN, Pin.PULL_UP)
+LED = Pin(25, Pin.OUT)
+BUZZER = Pin(3, Pin.OUT)
 
-_buzzer_pin = board.BUZZER
+i2c = I2C(0, scl=I2C0_SCL, sda=I2C0_SDA)
+display = Display(i2c)
 
-i2c = busio.I2C(board.SCL, board.SDA)
-
-try:
-    # For Pico:ed V2
-    internal_i2c = busio.I2C(board.I2C0_SCL, board.I2C0_SDA)
-    display = Display(internal_i2c)
-except RuntimeError:
-    # For Pico:ed V1
-    display = Display(i2c)
-    _buzzer_pin = board.BUZZER_GP0
-
-button_a = Button(board.BUTTON_A)
-button_b = Button(board.BUTTON_B)
-led = Led(board.LED)
-music = Music(_buzzer_pin)
+button_a = Button(BUTTON_A)
+button_b = Button(BUTTON_B)
+led = Led(LED)
+music = Music(BUZZER)

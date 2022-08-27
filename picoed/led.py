@@ -5,42 +5,16 @@
 `picoed.led`
 ====================================================
 
-CircuitPython driver for the Pico:ed built-in LED.
+MicroPython driver for the Pico:ed built-in LED.
 
 """
 
-import digitalio
-
 
 class Led:
-    """Supports the Pico:ed built-in LED by ELECFREAKS"""
+    """Supports the Pico:ed built-in LED"""
 
     def __init__(self, pin):
         self._pin = pin
-        self._io = None
-
-    def _init(self):
-        if not self._io:
-            self._io = digitalio.DigitalInOut(self._pin)
-            self._io.direction = digitalio.Direction.OUTPUT
-
-    def deinit(self):
-        """Destroy the pin."""
-        if self._io:
-            self._io.deinit()
-            self._io = None
-
-    def on(self):
-        """Turn on the LED."""
-        self._init()
-        self._io.value = True
-
-    def off(self):
-        """Turn off the LED."""
-        self._init()
-        self._io.value = False
-
-    def toggle(self):
-        """Toggles the LED."""
-        self._init()
-        self._io.value = not self._io.value
+        self.on = self._pin.on
+        self.off = self._pin.off
+        self.toggle = self._pin.toggle
