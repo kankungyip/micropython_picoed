@@ -12,7 +12,7 @@ from .is31fl3731 import IS31FL3731
 
 OFFSET_BYTES = const(2)
 FONT_BYTES = const(7)
-BLANK_FONT = b'\x7f\x41\x41\x41\x41\x41\x7f\x00'
+BLANK_FONT = b'\x7f\x41\x41\x41\x41\x41\x7f'
 FONTS_BIN = '/picoed/fonts.bin'
 
 
@@ -130,13 +130,14 @@ class Display(IS31FL3731):
                 if char == " ":
                     text_buf += b"\x00" * 4 # 空格
                 else:
-                    font = self._find_font(char, f)
-                    if not font and fonts: # 缺字时查找自定义的字库
-                        font = fonts[char]
-                    if font:
-                        text_buf += font + b'\x00' # 字间距 1 列
-                    else:
-                        text_buf += BLANK_FONT # 缺字（空白字）
+                    font = None
+                    if fonts:   # 优先查找自定义的字库
+                        font = fonts.get(char)
+                    if not font:   # 从自带字库中查找
+                        font = self._find_font(char, f)
+                    if not font:  # 缺字（空白字）
+                        font = BLANK_FONT;
+                    text_buf += font + b'\x00' # 字间距 1 列
 
         if len(text_buf) <= self.width:
             for buf_index in range(len(text_buf)):
