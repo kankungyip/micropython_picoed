@@ -111,6 +111,20 @@ class Display(IS31FL3731):
                     self.pixel(x, y, brightness)
         self.frame(self._current_frame, show=True)
 
+    def _vertical_draw(self, buffer, brightness):
+        self._current_frame = 0 if self._current_frame else 1
+        self.frame(self._current_frame, show=False)
+        self.fill(0)
+        for y in range(self.height):
+            s = ''
+            for i in range(2):
+                col = buffer[2 * y + i]
+                for x in range(8):
+                    bit = 1 << x & col
+                    if bit:
+                        self.pixel(16 - ((8 * i) + x), y, brightness)
+        self.frame(self._current_frame, show=True)
+
     def clear(self):
         """Clears the LED display."""
         self.fill(0)
@@ -156,6 +170,33 @@ class Display(IS31FL3731):
                 idle_time = frame_time - utime.ticks_diff(utime.ticks_ms(), start)
                 if idle_time > 0:
                     utime.sleep_ms(int(idle_time))
+
+    def vertical_scroll(self, value, fonts, fps=15, brightness=30):
+        text_buf = bytearray()        
+        buf = bytearray(self.height * 2)
+
+        for char in str(value):
+            if char == ' ':
+                text_buf += b'\x00' * 8 * 2
+            else:
+                font = fonts[char] if char in fonts else b'\x00' * 32
+                text_buf += font + b'\x00' * 2 * 2 # 间距
+
+        frame_time = 1000 // fps
+
+        for text_index in range(0, len(text_buf) + self.height + 2, 2):
+            start = utime.ticks_ms()
+            for buf_index in range(0, len(buf) - 2, 2):
+                buf[buf_index] = buf[buf_index + 2]
+                buf[buf_index + 1] = buf[buf_index + 3]
+            if text_index < len(text_buf):
+                buf[len(buf) - 2] = text_buf[text_index]
+                buf[len(buf) - 1] = text_buf[text_index + 1]
+            self._vertical_draw(buf, brightness)
+            # 帧率控制
+            idle_time = frame_time - utime.ticks_diff(utime.ticks_ms(), start)
+            if idle_time > 0:
+                utime.sleep_ms(int(idle_time))
 
     def show(self, value, brightness=30):
         """Shows images, letters or digits on the LED display."""
